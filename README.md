@@ -6,4 +6,9 @@ Behavior tree plugins for interacting with Universal Robots ROS2 Driver
    ```bash
    cd <workspace>
    vcs import src < src/ur_behavior_tree/dependencies.repos
-   ```  
+   ```
+1. Build Workspace
+   ```bash
+   colcon build
+   source install/setup.bash
+   ```
