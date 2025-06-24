@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4" project_name="Project">
+    <include path="ur_bt.xml"/>
+    <!-- Description of Node Models (used by Groot) -->
+    <TreeNodesModel>
+        <Action ID="SetIO" editable="true">
+            <input_port name="service_name" default="/io_and_status_controller/set_io"/>
+            <input_port name="function"/>
+            <input_port name="pin"/>
+            <input_port name="state"/>
+        </Action>
+    </TreeNodesModel>
+</root>

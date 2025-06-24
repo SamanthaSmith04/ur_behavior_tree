@@ -1,0 +1,12 @@
+- git:
+    local-name: BehaviorTree.CPP
+    uri: https://github.com/BehaviorTree/BehaviorTree.CPP.git
+    version: 4.4.3
+- git:
+    local-name: BehaviorTree.ROS2
+    uri: https://github.com/marip8/BehaviorTree.ROS2.git
+    version: fd9e565591b019fc55d579577737d7879a88a4a0
+- git:
+    local-name: ur_ros2_driver
+    uri: https://github.com/UniversalRobots/Universal_Robots_ROS2_Driver.git
+    version: 9ab47a11f852cdb096a160a9c855e7cb78d50ad5
