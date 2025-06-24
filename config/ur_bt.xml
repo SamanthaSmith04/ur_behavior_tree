@@ -8,5 +8,12 @@
         <input_port name="pin"/>
         <input_port name="state"/>
     </Action>
+    <Action ID="GetRobotMode" editable="true">
+      <input_port name="service_name" default="/ur_dashboard_client/robot_mode"/>
+      <output_port name="robot_mode"/>
+    </Action>
+    <Action ID="SetRobotModeRunning" editable="true">
+      <input_port name="action_name" default="/ur_dashboard_client/set_mode"/>
+    </Action>
   </TreeNodesModel>
 </root>

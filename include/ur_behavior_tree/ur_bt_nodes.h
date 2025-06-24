@@ -1,9 +1,12 @@
 #pragma once
 
 #include <behaviortree_ros2/bt_service_node.hpp>
+#include <behaviortree_ros2/bt_action_node.hpp>
 #include <behaviortree_ros2/bt_topic_sub_node.hpp>
 #include <ur_msgs/srv/set_io.hpp>
 #include <ur_msgs/msg/io_states.hpp>
+#include <ur_dashboard_msgs/srv/get_robot_mode.hpp>
+#include <ur_dashboard_msgs/action/set_mode.hpp>
 
 #include <sensor_msgs/msg/joint_state.hpp>
 #include <trajectory_msgs/msg/joint_trajectory.hpp>
@@ -48,6 +51,22 @@ public:
   }
 };
 
+template <typename T>
+class RosActionNode : public BT::RosActionNode<T>
+{
+public:
+  using BT::RosActionNode<T>::RosActionNode;
+  inline BT::NodeStatus onFailure(BT::ServiceNodeErrorCode error) override
+  {
+    std::stringstream ss;
+    ss << "Action '" << BT::RosActionNode<T>::action_name_ << "'";
+
+    this->config().blackboard->set(ERROR_MESSAGE_KEY, ss.str());
+
+    return BT::NodeStatus::FAILURE;
+  }
+};
+
 class SetIONode : public RosServiceNode<ur_msgs::srv::SetIO>
 {
 public:
@@ -62,6 +81,35 @@ public:
 
   bool setRequest(typename Request::SharedPtr& request) override;
   BT::NodeStatus onResponseReceived(const typename Response::SharedPtr& response) override;
+};
+
+class GetRobotModeNode : public BT::RosServiceNode<ur_dashboard_msgs::srv::GetRobotMode>
+{
+  public:
+    inline static std::string ROBOT_MODE_OUTPUT_PORT_KEY = "robot_mode";
+    inline static std::string SERVICE_NAME_KEY = "service_name";
+    static BT::PortsList providedPorts()
+    {
+      return providedBasicPorts({BT::InputPort<std::string>(SERVICE_NAME_KEY), 
+                                 BT::OutputPort<std::string>(ROBOT_MODE_OUTPUT_PORT_KEY)});
+    }
+    using BT::RosServiceNode<ur_dashboard_msgs::srv::GetRobotMode>::RosServiceNode;
+    bool setRequest(typename Request::SharedPtr& request) override;
+    BT::NodeStatus onResponseReceived(const typename Response::SharedPtr& response) override;
+};
+
+class SetRobotModeRunningNode : public BT::RosActionNode<ur_dashboard_msgs::action::SetMode>
+{
+  public:
+    using BT::RosActionNode<ur_dashboard_msgs::action::SetMode>::RosActionNode;
+    inline static std::string ACTION_SERVER_NAME = "action_name";
+    static BT::PortsList providedPorts()
+    {
+      return providedBasicPorts({ BT::InputPort<std::string>(ACTION_SERVER_NAME) });
+    }
+
+    bool setGoal(RosActionNode::Goal& goal) override;
+    BT::NodeStatus onResultReceived(const WrappedResult& wr) override;
 };
 
 class ReadSingleIONode : public BT::RosTopicSubNode<ur_msgs::msg::IOStates>
