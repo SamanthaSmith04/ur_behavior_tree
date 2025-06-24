@@ -3,9 +3,11 @@
 #include <behaviortree_ros2/bt_service_node.hpp>
 #include <behaviortree_ros2/bt_topic_sub_node.hpp>
 #include <ur_msgs/srv/set_io.hpp>
+#include <ur_msgs/msg/io_states.hpp>
 
 #include <sensor_msgs/msg/joint_state.hpp>
 #include <trajectory_msgs/msg/joint_trajectory.hpp>
+
 
 namespace ur_behavior_tree
 {
@@ -62,6 +64,21 @@ public:
   BT::NodeStatus onResponseReceived(const typename Response::SharedPtr& response) override;
 };
 
+class ReadSingleIONode : public BT::RosTopicSubNode<ur_msgs::msg::IOStates>
+{
+  public:
+    inline static std::string IO_STATES_TYPE_KEY = "io_states_type";
+    inline static std::string IO_STATES_PIN_KEY = "pin";
+    inline static std::string IO_STATES_OUTPUT_PORT_KEY = "output";
+    static BT::PortsList providedPorts()
+    {
+      return providedBasicPorts({ BT::OutputPort<ur_msgs::msg::IOStates>(IO_STATES_OUTPUT_PORT_KEY) });
+    }
+    using BT::RosTopicSubNode<ur_msgs::msg::IOStates>::RosTopicSubNode;
+
+    BT::NodeStatus onTick(const typename ur_msgs::msg::IOStates::SharedPtr& last_msg) override;
+
+};
 
 class AddJointsToTrajectoryNode : public BT::RosTopicSubNode<sensor_msgs::msg::JointState>
 {

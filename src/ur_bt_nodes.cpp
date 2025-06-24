@@ -39,6 +39,77 @@ BT::NodeStatus SetIONode::onResponseReceived(const typename Response::SharedPtr&
   return BT::NodeStatus::SUCCESS;
 }
 
+BT::NodeStatus ReadSingleIONode::onTick(const typename ur_msgs::msg::IOStates::SharedPtr& last_msg)
+{
+  try
+  {
+    // Check
+    if (last_msg == nullptr)
+      throw std::runtime_error("No IO state message acquired yet");
+
+    // Find the index of the requested address in the last state message
+    if (getBTInput<std::string>(this, IO_STATES_TYPE_KEY) == "digital_in_states")
+    {
+      auto pin_it = std::find_if(
+          last_msg->digital_in_states.begin(), last_msg->digital_in_states.end(),
+          [this](const ur_msgs::msg::Digital& state) {
+            return state.pin == getBTInput<uint32_t>(this, IO_STATES_PIN_KEY);
+          });
+      if (pin_it == last_msg->digital_in_states.end())
+        throw std::runtime_error("Requested digital input pin not found in the last IO state message");
+      auto idx = static_cast<std::size_t>(std::distance(last_msg->digital_in_states.begin(), pin_it));
+      setOutput(IO_STATES_OUTPUT_PORT_KEY, last_msg->digital_in_states.at(idx).state);
+    }
+    else if (getBTInput<std::string>(this, IO_STATES_TYPE_KEY) == "digital_out_states")
+    {
+      auto pin_it = std::find_if(
+          last_msg->digital_out_states.begin(), last_msg->digital_out_states.end(),
+          [this](const ur_msgs::msg::Digital& state) {
+            return state.pin == getBTInput<uint32_t>(this, IO_STATES_PIN_KEY);
+          });
+      if (pin_it == last_msg->digital_out_states.end())
+        throw std::runtime_error("Requested digital output pin not found in the last IO state message");
+      auto idx = static_cast<std::size_t>(std::distance(last_msg->digital_out_states.begin(), pin_it));
+      setOutput(IO_STATES_OUTPUT_PORT_KEY, last_msg->digital_out_states.at(idx).state);
+    }
+    else if (getBTInput<std::string>(this, IO_STATES_TYPE_KEY) == "analog_in_states")
+    {
+      auto pin_it = std::find_if(
+          last_msg->analog_in_states.begin(), last_msg->analog_in_states.end(),
+          [this](const ur_msgs::msg::Analog& state) {
+            return state.pin == getBTInput<uint32_t>(this, IO_STATES_PIN_KEY);
+          });
+      if (pin_it == last_msg->analog_in_states.end())
+        throw std::runtime_error("Requested analog input pin not found in the last IO state message");
+      auto idx = static_cast<std::size_t>(std::distance(last_msg->analog_in_states.begin(), pin_it));
+      setOutput(IO_STATES_OUTPUT_PORT_KEY, last_msg->analog_in_states.at(idx).state);
+    }
+    else if (getBTInput<std::string>(this, IO_STATES_TYPE_KEY) == "analog_out_states")
+    {
+      auto pin_it = std::find_if(
+          last_msg->analog_out_states.begin(), last_msg->analog_out_states.end(),
+          [this](const ur_msgs::msg::Analog& state) {
+            return state.pin == getBTInput<uint32_t>(this, IO_STATES_PIN_KEY);
+          });
+      if (pin_it == last_msg->analog_out_states.end())
+        throw std::runtime_error("Requested analog output pin not found in the last IO state message");
+      auto idx = static_cast<std::size_t>(std::distance(last_msg->analog_out_states.begin(), pin_it));
+      setOutput(IO_STATES_OUTPUT_PORT_KEY, last_msg->analog_out_states.at(idx).state);
+    }
+    else
+    {
+      throw std::runtime_error("Unsupported IO states type: " + getBTInput<std::string>(this, IO_STATES_TYPE_KEY));
+    }
+  }
+  catch (const std::exception& ex)
+  {
+    config().blackboard->set(ERROR_MESSAGE_KEY, ex.what());
+    return BT::NodeStatus::FAILURE;
+  }
+
+  return BT::NodeStatus::SUCCESS;
+}
+
 BT::NodeStatus AddJointsToTrajectoryNode::onTick(const typename sensor_msgs::msg::JointState::SharedPtr& last_msg)
 {
   try
@@ -158,4 +229,6 @@ BTCPP_EXPORT void BT_RegisterRosNodeFromPlugin(BT::BehaviorTreeFactory& factory,
         ur_behavior_tree::AddJointsToTrajectoryNode::CONTROLLER_JOINT_NAMES_PARAM, {});
   }
   factory.registerNodeType<ur_behavior_tree::AddJointsToTrajectoryNode>("AddJointsToTrajectory", params);
+
+  factory.registerNodeType<ur_behavior_tree::ReadSingleIONode>("ReadSingleIO", params);
 }
