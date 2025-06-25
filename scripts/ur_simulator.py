@@ -48,6 +48,7 @@ class RobotServiceNode(Node):
         goal_handle.succeed()
         result = ur_dashboard_msgs.action.SetMode.Result()
         result.success = True
+        result.message = "Robot is set to RUNNING mode"
         return result
 
     
