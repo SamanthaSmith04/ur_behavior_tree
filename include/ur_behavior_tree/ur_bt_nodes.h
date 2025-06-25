@@ -56,10 +56,35 @@ class RosActionNode : public BT::RosActionNode<T>
 {
 public:
   using BT::RosActionNode<T>::RosActionNode;
-  inline BT::NodeStatus onFailure(BT::ServiceNodeErrorCode error) override
+
+  inline BT::NodeStatus onFailure(BT::ActionNodeErrorCode error) override
   {
     std::stringstream ss;
-    ss << "Action '" << BT::RosActionNode<T>::action_name_ << "'";
+    ss << "Action '" << BT::RosActionNode<T>::prev_action_name_ << "' failed: '";
+
+    switch (error)
+    {
+      case BT::SERVER_UNREACHABLE:
+        ss << "server unreachable'";
+        break;
+      case BT::SEND_GOAL_TIMEOUT:
+        ss << "goal timed out'";
+        break;
+      case BT::GOAL_REJECTED_BY_SERVER:
+        ss << "goal rejected by server'";
+        break;
+      case BT::ACTION_ABORTED:
+        ss << "action aborted'";
+        break;
+      case BT::ACTION_CANCELLED:
+        ss << "action cancelled'";
+        break;
+      case BT::INVALID_GOAL:
+        ss << "invalid goal'";
+        break;
+      default:
+        break;
+    }
 
     this->config().blackboard->set(ERROR_MESSAGE_KEY, ss.str());
 
