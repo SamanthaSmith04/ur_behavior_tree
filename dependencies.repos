@@ -9,7 +9,7 @@
 - git:
     local-name: ur_ros2_driver
     uri: https://github.com/UniversalRobots/Universal_Robots_ROS2_Driver.git
-    version: 9ab47a11f852cdb096a160a9c855e7cb78d50ad5
+    version: 4db741e69bab18eaf2d50bb774d5bdbab2620fbe
 - git:
     local-name: ur_msgs
     uri: https://github.com/ros-industrial/ur_msgs.git
