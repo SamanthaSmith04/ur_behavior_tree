@@ -7,10 +7,6 @@
     uri: https://github.com/marip8/BehaviorTree.ROS2.git
     version: fd9e565591b019fc55d579577737d7879a88a4a0
 - git:
-    local-name: ur_ros2_driver
-    uri: https://github.com/UniversalRobots/Universal_Robots_ROS2_Driver.git
-    version: 4db741e69bab18eaf2d50bb774d5bdbab2620fbe
-- git:
     local-name: ur_msgs
     uri: https://github.com/ros-industrial/ur_msgs.git
     version: humble-devel

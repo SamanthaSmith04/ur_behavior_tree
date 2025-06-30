@@ -13,7 +13,6 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(behaviortree_ros2 REQUIRED)
 find_package(ur_msgs REQUIRED)
-find_package(ur_dashboard_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(trajectory_msgs REQUIRED)
 
@@ -23,7 +22,7 @@ target_include_directories(
   PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
          "$<INSTALL_INTERFACE:include>")
 ament_target_dependencies(${PROJECT_NAME} ur_msgs behaviortree_ros2
-                          sensor_msgs trajectory_msgs ur_dashboard_msgs)
+                          sensor_msgs trajectory_msgs)
 target_compile_definitions(${PROJECT_NAME} PRIVATE BT_PLUGIN_EXPORT)
 
 # Install the headers
