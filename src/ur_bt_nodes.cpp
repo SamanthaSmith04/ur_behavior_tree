@@ -1,4 +1,5 @@
 #include <ur_behavior_tree/ur_bt_nodes.h>
+#include <iostream>
 
 template <typename T>
 T getBTInput(const BT::TreeNode* node, const std::string& port)
@@ -24,18 +25,73 @@ namespace ur_behavior_tree
 
 bool SetIONode::setRequest(typename Request::SharedPtr& request)
 {
-  request->fun = getBTInput<uint32_t>(this, FUNCTION_KEY);
-  request->pin = getBTInput<uint32_t>(this, PIN_KEY);
-  request->state = getBTInput<float_t>(this, STATE_KEY);
+  io_enabled = get_parameter<bool>(node_, ENABLE_IO_PARAM);
+  if (io_enabled || getBTInput<float_t>(this, STATE_KEY)) // Always allow turning off I/O
+  {
+    request->fun = getBTInput<uint32_t>(this, FUNCTION_KEY);
+    request->pin = getBTInput<uint32_t>(this, PIN_KEY);
+    request->state = getBTInput<float_t>(this, STATE_KEY);
+  }
+  else
+  {
+    request->fun = 0;
+    request->pin = -1;
+    request->state = -1;
+  }
+
   return true;
 }
 
+
 BT::NodeStatus SetIONode::onResponseReceived(const typename Response::SharedPtr& response)
 {
-  if (!response->success)
+  if (!io_enabled)
   {
+    std::cout << "[WARN] I/O disabled - SetIO is being skipped!" << std::endl;
+  }
+  else {
+    if (!response->success)
+    {
+      return BT::NodeStatus::FAILURE;
+    }
+  }
+  return BT::NodeStatus::SUCCESS;
+}
+
+bool SetRobotModeRunningNode::setGoal(RosActionNode::Goal& goal) 
+{
+  goal.target_robot_mode = ur_dashboard_msgs::msg::RobotMode::RUNNING;
+  goal.stop_program = true;
+  goal.play_program = false;
+  return true;
+}
+
+BT::NodeStatus SetRobotModeRunningNode::onResultReceived(const WrappedResult& wr)
+{
+  if (!wr.result->success)
+  {
+    config().blackboard->set(ERROR_MESSAGE_KEY, "Failed to set robot mode to RUNNING: " + wr.result->message);
     return BT::NodeStatus::FAILURE;
   }
+  return BT::NodeStatus::SUCCESS;
+}
+
+bool GetRobotModeNode::setRequest(typename Request::SharedPtr& request)
+{
+  // No parameters to set for this service
+  (void)request;
+  return true;
+}
+
+BT::NodeStatus GetRobotModeNode::onResponseReceived(const typename Response::SharedPtr& response)
+{
+  if (response->robot_mode.mode != ur_dashboard_msgs::msg::RobotMode::RUNNING)
+  {
+    config().blackboard->set(ERROR_MESSAGE_KEY, "Robot mode is not RUNNING: " + response->answer);
+    return BT::NodeStatus::FAILURE;
+  }
+
+  setOutput(ROBOT_MODE_OUTPUT_PORT_KEY, response->robot_mode);
   return BT::NodeStatus::SUCCESS;
 }
 
@@ -222,7 +278,11 @@ BT::NodeStatus AddJointsToTrajectoryNode::onTick(const typename sensor_msgs::msg
 BTCPP_EXPORT void BT_RegisterRosNodeFromPlugin(BT::BehaviorTreeFactory& factory, const BT::RosNodeParams& params)
 {
   factory.registerNodeType<ur_behavior_tree::SetIONode>("SetIO", params);
-
+  if (!params.nh->has_parameter(ur_behavior_tree::SetIONode::ENABLE_IO_PARAM))
+  {
+    params.nh->declare_parameter<bool>(
+        ur_behavior_tree::SetIONode::ENABLE_IO_PARAM, false);
+  }
   if (!params.nh->has_parameter(ur_behavior_tree::AddJointsToTrajectoryNode::CONTROLLER_JOINT_NAMES_PARAM))
   {
     params.nh->declare_parameter<std::vector<std::string>>(
@@ -232,4 +292,6 @@ BTCPP_EXPORT void BT_RegisterRosNodeFromPlugin(BT::BehaviorTreeFactory& factory,
 
   factory.registerNodeType<ur_behavior_tree::ReadSingleIONode>("ReadSingleIO", params);
 
+  factory.registerNodeType<ur_behavior_tree::GetRobotModeNode>("GetRobotMode", params);
+  factory.registerNodeType<ur_behavior_tree::SetRobotModeRunningNode>("SetRobotModeRunning", params);
 }
