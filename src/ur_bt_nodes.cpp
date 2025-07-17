@@ -58,42 +58,6 @@ BT::NodeStatus SetIONode::onResponseReceived(const typename Response::SharedPtr&
   return BT::NodeStatus::SUCCESS;
 }
 
-bool SetRobotModeRunningNode::setGoal(RosActionNode::Goal& goal) 
-{
-  goal.target_robot_mode = ur_dashboard_msgs::msg::RobotMode::RUNNING;
-  goal.stop_program = true;
-  goal.play_program = false;
-  return true;
-}
-
-BT::NodeStatus SetRobotModeRunningNode::onResultReceived(const WrappedResult& wr)
-{
-  if (!wr.result->success)
-  {
-    config().blackboard->set(ERROR_MESSAGE_KEY, "Failed to set robot mode to RUNNING: " + wr.result->message);
-    return BT::NodeStatus::FAILURE;
-  }
-  return BT::NodeStatus::SUCCESS;
-}
-
-bool GetRobotModeNode::setRequest(typename Request::SharedPtr& request)
-{
-  // No parameters to set for this service
-  (void)request;
-  return true;
-}
-
-BT::NodeStatus GetRobotModeNode::onResponseReceived(const typename Response::SharedPtr& response)
-{
-  if (response->robot_mode.mode != ur_dashboard_msgs::msg::RobotMode::RUNNING)
-  {
-    config().blackboard->set(ERROR_MESSAGE_KEY, "Robot mode is not RUNNING: " + response->answer);
-    return BT::NodeStatus::FAILURE;
-  }
-
-  setOutput(ROBOT_MODE_OUTPUT_PORT_KEY, response->robot_mode);
-  return BT::NodeStatus::SUCCESS;
-}
 
 BT::NodeStatus ReadSingleIONode::onTick(const typename ur_msgs::msg::IOStates::SharedPtr& last_msg)
 {
@@ -292,6 +256,4 @@ BTCPP_EXPORT void BT_RegisterRosNodeFromPlugin(BT::BehaviorTreeFactory& factory,
 
   factory.registerNodeType<ur_behavior_tree::ReadSingleIONode>("ReadSingleIO", params);
 
-  factory.registerNodeType<ur_behavior_tree::GetRobotModeNode>("GetRobotMode", params);
-  factory.registerNodeType<ur_behavior_tree::SetRobotModeRunningNode>("SetRobotModeRunning", params);
 }
