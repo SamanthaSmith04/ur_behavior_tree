@@ -26,11 +26,21 @@ namespace ur_behavior_tree
 bool SetIONode::setRequest(typename Request::SharedPtr& request)
 {
   io_enabled = get_parameter<bool>(node_, ENABLE_IO_PARAM);
-  if (io_enabled || getBTInput<float_t>(this, STATE_KEY)) // Always allow turning off I/O
+  if (io_enabled) // Always allow turning off I/O
   {
     request->fun = getBTInput<uint32_t>(this, FUNCTION_KEY);
-    request->pin = getBTInput<uint32_t>(this, PIN_KEY);
     request->state = getBTInput<float_t>(this, STATE_KEY);
+
+    try
+    {
+      if (getBTInput<uint32_t>(this, PIN_KEY)) {
+        request->pin = getBTInput<uint32_t>(this, PIN_KEY);
+      }
+    }
+    catch (const std::exception& e)
+    {
+      request->pin = get_parameter<int>(node_, PIN_PARAMETER_KEY);
+    }
   }
   else
   {
@@ -247,6 +257,13 @@ BTCPP_EXPORT void BT_RegisterRosNodeFromPlugin(BT::BehaviorTreeFactory& factory,
     params.nh->declare_parameter<bool>(
         ur_behavior_tree::SetIONode::ENABLE_IO_PARAM, false);
   }
+
+  if (!params.nh->has_parameter(ur_behavior_tree::SetIONode::PIN_PARAMETER_KEY))
+  {
+    params.nh->declare_parameter<int>(
+        ur_behavior_tree::SetIONode::PIN_PARAMETER_KEY, -1);
+  }
+
   if (!params.nh->has_parameter(ur_behavior_tree::AddJointsToTrajectoryNode::CONTROLLER_JOINT_NAMES_PARAM))
   {
     params.nh->declare_parameter<std::vector<std::string>>(

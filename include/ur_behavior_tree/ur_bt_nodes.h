@@ -94,6 +94,7 @@ class SetIONode : public RosServiceNode<ur_msgs::srv::SetIO>
 {
 public:
   inline static std::string ENABLE_IO_PARAM = "io_enabled";
+  inline static std::string PIN_PARAMETER_KEY = "pin_ros_param";
   inline static std::string FUNCTION_KEY = "function";
   inline static std::string PIN_KEY = "pin";
   inline static std::string STATE_KEY = "state";
