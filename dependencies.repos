@@ -10,3 +10,7 @@
     local-name: ur_msgs
     uri: https://github.com/ros-industrial/ur_msgs.git
     version: humble-devel
+- git:
+    local-name: ur_ros2_driver
+    uri: https://github.com/UniversalRobots/Universal_Robots_ROS2_Driver.git
+    version: 2.8.1
